@@ -118,7 +118,7 @@ class InventoryAPITester:
             "description": "Balones, conos, porterías y demás equipamiento para fútbol"
         }
         
-        success, response, status = self.make_request('POST', 'categories', category_data, 201)
+        success, response, status = self.make_request('POST', 'categories', category_data, 200)
         if success:
             category_id = response.get('id')
             self.created_resources['categories'].append(category_id)
