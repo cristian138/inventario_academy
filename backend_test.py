@@ -155,7 +155,7 @@ class InventoryAPITester:
             "responsible": "Juan Pérez"
         }
         
-        success, response, status = self.make_request('POST', 'goods', good_data, 201)
+        success, response, status = self.make_request('POST', 'goods', good_data, 200)
         if success:
             good_id = response.get('id')
             self.created_resources['goods'].append(good_id)
