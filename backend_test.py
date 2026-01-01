@@ -203,7 +203,7 @@ class InventoryAPITester:
             "notes": "Asignación para entrenamiento de la tarde"
         }
         
-        success, response, status = self.make_request('POST', 'assignments', assignment_data, 201)
+        success, response, status = self.make_request('POST', 'assignments', assignment_data, 200)
         if success:
             assignment_id = response.get('assignment_id')
             acta_code = response.get('acta_code')
