@@ -270,8 +270,8 @@ class InventoryAPITester:
         print("\n⚠️ Testing Error Handling...")
         
         # Test accessing non-existent resource
-        success, response, status = self.make_request('GET', 'goods/non-existent-id', expected_status=404)
-        self.log_test("404 Error Handling", success, "Correctly returns 404 for non-existent resource")
+        success, response, status = self.make_request('GET', 'goods/non-existent-id', expected_status=200)
+        self.log_test("404 Error Handling", status == 404, f"Status: {status} for non-existent resource")
         
         # Test creating good with invalid category
         invalid_good = {
