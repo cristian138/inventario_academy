@@ -427,6 +427,163 @@ async def delete_category(request: Request, category_id: str, current_user: dict
     
     return {"message": "Categoría eliminada exitosamente"}
 
+# Instructor endpoints
+@api_router.get("/instructors-management", response_model=List[Instructor])
+async def get_instructors_management(current_user: dict = Depends(get_current_user)):
+    instructors = await db.instructors.find({}, {"_id": 0}).to_list(1000)
+    return instructors
+
+@api_router.post("/instructors-management", response_model=Instructor)
+async def create_instructor(request: Request, instructor_data: InstructorCreate, current_user: dict = Depends(get_current_user)):
+    instructor = {
+        "id": str(uuid.uuid4()),
+        "name": instructor_data.name,
+        "email": instructor_data.email,
+        "phone": instructor_data.phone,
+        "specialization": instructor_data.specialization,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.instructors.insert_one(instructor)
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(current_user["email"], "CREATE_INSTRUCTOR", "instructors", client_ip, f"Created: {instructor_data.name}")
+    
+    return instructor
+
+@api_router.put("/instructors-management/{instructor_id}", response_model=Instructor)
+async def update_instructor(request: Request, instructor_id: str, instructor_data: InstructorUpdate, current_user: dict = Depends(get_current_user)):
+    instructor = await db.instructors.find_one({"id": instructor_id}, {"_id": 0})
+    if not instructor:
+        raise HTTPException(status_code=404, detail="Instructor no encontrado")
+    
+    update_data = {k: v for k, v in instructor_data.model_dump(exclude_unset=True).items() if v is not None}
+    
+    if update_data:
+        await db.instructors.update_one({"id": instructor_id}, {"$set": update_data})
+        
+        client_ip = request.client.host if request.client else "unknown"
+        await create_audit_log(current_user["email"], "UPDATE_INSTRUCTOR", "instructors", client_ip, f"Updated: {instructor_id}")
+    
+    updated_instructor = await db.instructors.find_one({"id": instructor_id}, {"_id": 0})
+    return updated_instructor
+
+@api_router.delete("/instructors-management/{instructor_id}")
+async def delete_instructor(request: Request, instructor_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.instructors.delete_one({"id": instructor_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Instructor no encontrado")
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(current_user["email"], "DELETE_INSTRUCTOR", "instructors", client_ip, f"Deleted: {instructor_id}")
+    
+    return {"message": "Instructor eliminado exitosamente"}
+
+# Sport endpoints
+@api_router.get("/sports-management", response_model=List[Sport])
+async def get_sports_management(current_user: dict = Depends(get_current_user)):
+    sports = await db.sports.find({}, {"_id": 0}).to_list(1000)
+    return sports
+
+@api_router.post("/sports-management", response_model=Sport)
+async def create_sport(request: Request, sport_data: SportCreate, current_user: dict = Depends(get_current_user)):
+    sport = {
+        "id": str(uuid.uuid4()),
+        "name": sport_data.name,
+        "description": sport_data.description,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.sports.insert_one(sport)
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(current_user["email"], "CREATE_SPORT", "sports", client_ip, f"Created: {sport_data.name}")
+    
+    return sport
+
+@api_router.put("/sports-management/{sport_id}", response_model=Sport)
+async def update_sport(request: Request, sport_id: str, sport_data: SportUpdate, current_user: dict = Depends(get_current_user)):
+    sport = await db.sports.find_one({"id": sport_id}, {"_id": 0})
+    if not sport:
+        raise HTTPException(status_code=404, detail="Deporte no encontrado")
+    
+    update_data = {k: v for k, v in sport_data.model_dump(exclude_unset=True).items() if v is not None}
+    
+    if update_data:
+        await db.sports.update_one({"id": sport_id}, {"$set": update_data})
+        
+        client_ip = request.client.host if request.client else "unknown"
+        await create_audit_log(current_user["email"], "UPDATE_SPORT", "sports", client_ip, f"Updated: {sport_id}")
+    
+    updated_sport = await db.sports.find_one({"id": sport_id}, {"_id": 0})
+    return updated_sport
+
+@api_router.delete("/sports-management/{sport_id}")
+async def delete_sport(request: Request, sport_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.sports.delete_one({"id": sport_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Deporte no encontrado")
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(current_user["email"], "DELETE_SPORT", "sports", client_ip, f"Deleted: {sport_id}")
+    
+    return {"message": "Deporte eliminado exitosamente"}
+
+# Warehouse endpoints
+@api_router.get("/warehouses", response_model=List[Warehouse])
+async def get_warehouses(current_user: dict = Depends(get_current_user)):
+    warehouses = await db.warehouses.find({}, {"_id": 0}).to_list(1000)
+    return warehouses
+
+@api_router.post("/warehouses", response_model=Warehouse)
+async def create_warehouse(request: Request, warehouse_data: WarehouseCreate, current_user: dict = Depends(get_current_user)):
+    warehouse = {
+        "id": str(uuid.uuid4()),
+        "name": warehouse_data.name,
+        "location": warehouse_data.location,
+        "capacity": warehouse_data.capacity,
+        "responsible": warehouse_data.responsible,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.warehouses.insert_one(warehouse)
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(current_user["email"], "CREATE_WAREHOUSE", "warehouses", client_ip, f"Created: {warehouse_data.name}")
+    
+    return warehouse
+
+@api_router.put("/warehouses/{warehouse_id}", response_model=Warehouse)
+async def update_warehouse(request: Request, warehouse_id: str, warehouse_data: WarehouseUpdate, current_user: dict = Depends(get_current_user)):
+    warehouse = await db.warehouses.find_one({"id": warehouse_id}, {"_id": 0})
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Bodega no encontrada")
+    
+    update_data = {k: v for k, v in warehouse_data.model_dump(exclude_unset=True).items() if v is not None}
+    
+    if update_data:
+        await db.warehouses.update_one({"id": warehouse_id}, {"$set": update_data})
+        
+        client_ip = request.client.host if request.client else "unknown"
+        await create_audit_log(current_user["email"], "UPDATE_WAREHOUSE", "warehouses", client_ip, f"Updated: {warehouse_id}")
+    
+    updated_warehouse = await db.warehouses.find_one({"id": warehouse_id}, {"_id": 0})
+    return updated_warehouse
+
+@api_router.delete("/warehouses/{warehouse_id}")
+async def delete_warehouse(request: Request, warehouse_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.warehouses.delete_one({"id": warehouse_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Bodega no encontrada")
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(current_user["email"], "DELETE_WAREHOUSE", "warehouses", client_ip, f"Deleted: {warehouse_id}")
+    
+    return {"message": "Bodega eliminada exitosamente"}
+
 # Goods endpoints
 @api_router.get("/goods", response_model=List[Good])
 async def get_goods(current_user: dict = Depends(get_current_user)):
