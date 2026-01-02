@@ -111,17 +111,37 @@ const Actas = () => {
     }
   };
 
-  const handleDownloadSigned = (assignmentId) => {
-    const token = localStorage.getItem('token');
-    const url = `${BACKEND_URL}/api/actas/${assignmentId}/download-signed?token=${token}`;
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Descargando acta firmada...');
+  const handleDownloadSigned = async (assignmentId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const url = `${BACKEND_URL}/api/actas/${assignmentId}/download-signed`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al descargar el archivo');
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `ACTA_FIRMADA_${assignmentId.substring(0, 8).toUpperCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      toast.success('Acta firmada descargada exitosamente');
+    } catch (error) {
+      toast.error('Error al descargar el acta firmada');
+      console.error('Download error:', error);
+    }
   };
 
   if (loading) {
