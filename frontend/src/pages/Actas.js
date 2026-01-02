@@ -39,18 +39,37 @@ const Actas = () => {
     }
   };
 
-  const handleDownload = (actaId, code) => {
-    const url = api.downloadActa(actaId);
-    const token = localStorage.getItem('token');
-    
-    const link = document.createElement('a');
-    link.href = `${url}?token=${token}`;
-    link.download = `${code}.pdf`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Descargando acta...');
+  const handleDownload = async (actaId, code) => {
+    try {
+      const token = localStorage.getItem('token');
+      const url = `${BACKEND_URL}/api/actas/${actaId}/download`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al descargar el archivo');
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${code}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      toast.success('Acta descargada exitosamente');
+    } catch (error) {
+      toast.error('Error al descargar el acta');
+      console.error('Download error:', error);
+    }
   };
 
   const handleOpenUploadDialog = (assignment) => {
