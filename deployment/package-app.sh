@@ -25,6 +25,7 @@ cp frontend/package.json /tmp/inventario-app/frontend/
 cp frontend/yarn.lock /tmp/inventario-app/frontend/ 2>/dev/null || true
 cp frontend/tailwind.config.js /tmp/inventario-app/frontend/
 cp frontend/postcss.config.js /tmp/inventario-app/frontend/
+cp frontend/craco.config.js /tmp/inventario-app/frontend/
 cp frontend/.env /tmp/inventario-app/frontend/.env.example
 
 # Sanitizar archivos .env (remover valores sensibles)
