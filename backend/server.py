@@ -789,6 +789,51 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
     client_ip = request.client.host if request.client else "unknown"
     await create_audit_log(current_user["email"], "CREATE_ASSIGNMENT", "assignments", client_ip, f"Instructor: {assignment_data.instructor_name}")
     
+    # Send email notification to instructor
+    instructor = await db.instructors.find_one({"name": assignment_data.instructor_name}, {"_id": 0})
+    if instructor and instructor.get("email"):
+        goods_list = "<ul>"
+        for detail in assignment_data.details:
+            good = await db.goods.find_one({"id": detail.good_id}, {"_id": 0})
+            goods_list += f"<li>{good['name']} - Cantidad: {detail.quantity_assigned}</li>"
+        goods_list += "</ul>"
+        
+        email_html = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <h2 style="color: #1E40AF;">Nueva Asignación de Inventario - Academia Jotuns Club SAS</h2>
+                    <p>Estimado/a <strong>{assignment_data.instructor_name}</strong>,</p>
+                    <p>Se ha generado una nueva asignación de inventario a su nombre:</p>
+                    
+                    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                        <p><strong>Código de Acta:</strong> {acta_code}</p>
+                        <p><strong>Disciplina:</strong> {assignment_data.discipline}</p>
+                        <p><strong>Fecha:</strong> {datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')}</p>
+                        <p><strong>Responsable:</strong> {current_user['name']}</p>
+                    </div>
+                    
+                    <h3 style="color: #1E40AF;">Bienes Asignados:</h3>
+                    {goods_list}
+                    
+                    {f'<p><strong>Notas:</strong> {assignment_data.notes}</p>' if assignment_data.notes else ''}
+                    
+                    <p style="margin-top: 30px;">Por favor, revise el acta de entrega y proceda con la firma correspondiente.</p>
+                    
+                    <p style="color: #666; font-size: 12px; margin-top: 30px;">
+                        Este es un mensaje automático del Sistema de Inventarios - Academia Jotuns Club SAS
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+        
+        await send_email_notification(
+            instructor["email"],
+            f"Nueva Asignación de Inventario - {acta_code}",
+            email_html
+        )
+    
     return {
         "message": "Asignación creada exitosamente",
         "assignment_id": assignment_id,
