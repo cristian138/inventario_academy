@@ -193,6 +193,94 @@ class DashboardStats(BaseModel):
     total_categories: int
     recent_assignments: List[dict]
 
+# New Models for Instructors, Sports, and Warehouses
+class InstructorCreate(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str
+    specialization: str
+
+class InstructorUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    specialization: Optional[str] = None
+    active: Optional[bool] = None
+
+class Instructor(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    email: EmailStr
+    phone: str
+    specialization: str
+    active: bool
+    created_at: str
+
+class SportCreate(BaseModel):
+    name: str
+    description: str
+
+class SportUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    active: Optional[bool] = None
+
+class Sport(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    description: str
+    active: bool
+    created_at: str
+
+class WarehouseCreate(BaseModel):
+    name: str
+    location: str
+    capacity: int
+    responsible: str
+
+class WarehouseUpdate(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+    capacity: Optional[int] = None
+    responsible: Optional[str] = None
+    active: Optional[bool] = None
+
+class Warehouse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    location: str
+    capacity: int
+    responsible: str
+    active: bool
+    created_at: str
+
+# Email notification function
+async def send_email_notification(to_email: str, subject: str, html_content: str):
+    try:
+        import resend
+        resend.api_key = os.environ.get('RESEND_API_KEY', '')
+        
+        if not resend.api_key:
+            logger.warning("RESEND_API_KEY not configured, skipping email notification")
+            return False
+            
+        params = {
+            "from": "Sistema de Inventarios <onboarding@resend.dev>",
+            "to": [to_email],
+            "subject": subject,
+            "html": html_content,
+        }
+        
+        email = resend.Emails.send(params)
+        logger.info(f"Email sent successfully to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Error sending email: {str(e)}")
+        return False
+
 # Get instructors and disciplines
 @api_router.get("/instructors")
 async def get_instructors(current_user: dict = Depends(get_current_user)):
