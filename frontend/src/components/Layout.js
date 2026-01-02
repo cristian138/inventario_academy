@@ -58,7 +58,7 @@ const Layout = () => {
               />
               <div>
                 <h1 className="text-white font-bold text-lg">Sistema de Inventarios</h1>
-                <p className="text-slate-400 text-xs">Academia Deportiva</p>
+                <p className="text-slate-400 text-xs">Academia Jotuns Club SAS</p>
               </div>
             </div>
             <button
