@@ -90,7 +90,8 @@ const Instructors = () => {
       toast.success('Instructor eliminado exitosamente');
       loadInstructors();
     } catch (error) {
-      toast.error('Error al eliminar instructor');
+      const errorMessage = error.response?.data?.detail || 'Error al eliminar instructor';
+      toast.error(errorMessage);
     }
   };
 
