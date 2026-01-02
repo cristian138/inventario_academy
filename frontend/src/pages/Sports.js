@@ -87,7 +87,8 @@ const Sports = () => {
       toast.success('Deporte eliminado exitosamente');
       loadSports();
     } catch (error) {
-      toast.error('Error al eliminar deporte');
+      const errorMessage = error.response?.data?.detail || 'Error al eliminar deporte';
+      toast.error(errorMessage);
     }
   };
 
