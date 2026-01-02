@@ -52,6 +52,18 @@ const Categories = () => {
     }
   };
 
+  const handleDelete = async (categoryId) => {
+    if (!window.confirm('¿Estás seguro de eliminar esta categoría?')) return;
+    
+    try {
+      await api.deleteCategory(categoryId);
+      toast.success('Categoría eliminada exitosamente');
+      loadCategories();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al eliminar categoría');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
