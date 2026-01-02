@@ -29,6 +29,9 @@ const Layout = () => {
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'control'] },
     { path: '/users', icon: Users, label: 'Usuarios', roles: ['admin'] },
+    { path: '/instructors', icon: Users, label: 'Instructores', roles: ['admin', 'control'] },
+    { path: '/sports', icon: ClipboardList, label: 'Deportes', roles: ['admin', 'control'] },
+    { path: '/warehouses', icon: FolderOpen, label: 'Bodegas', roles: ['admin', 'control'] },
     { path: '/categories', icon: FolderOpen, label: 'Categorías', roles: ['admin', 'control'] },
     { path: '/goods', icon: Package, label: 'Inventario', roles: ['admin', 'control'] },
     { path: '/assignments', icon: ClipboardList, label: 'Asignaciones', roles: ['admin', 'control'] },
