@@ -1009,6 +1009,7 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
+    # Create default admin
     admin = await db.users.find_one({"email": "admin@academia.com"})
     if not admin:
         default_admin = {
@@ -1022,6 +1023,35 @@ async def startup_event():
         }
         await db.users.insert_one(default_admin)
         logger.info("Default admin user created: admin@academia.com / admin123")
+    
+    # Create default instructors if none exist
+    instructors_count = await db.instructors.count_documents({})
+    if instructors_count == 0:
+        default_instructors = [
+            {"id": str(uuid.uuid4()), "name": "Juan Pérez", "email": "juan.perez@academia.com", "phone": "555-0101", "specialization": "Fútbol", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "María González", "email": "maria.gonzalez@academia.com", "phone": "555-0102", "specialization": "Natación", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Carlos Rodríguez", "email": "carlos.rodriguez@academia.com", "phone": "555-0103", "specialization": "Baloncesto", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Ana Martínez", "email": "ana.martinez@academia.com", "phone": "555-0104", "specialization": "Tenis", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Luis Fernández", "email": "luis.fernandez@academia.com", "phone": "555-0105", "specialization": "Atletismo", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+        ]
+        await db.instructors.insert_many(default_instructors)
+        logger.info("Default instructors created")
+    
+    # Create default sports if none exist
+    sports_count = await db.sports.count_documents({})
+    if sports_count == 0:
+        default_sports = [
+            {"id": str(uuid.uuid4()), "name": "Fútbol", "description": "Deporte de equipo con balón", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Baloncesto", "description": "Deporte de canasta", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Voleibol", "description": "Deporte de red y pelota", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Natación", "description": "Deporte acuático", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Atletismo", "description": "Carreras y competiciones atléticas", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Tenis", "description": "Deporte de raqueta", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Gimnasia", "description": "Ejercicios de flexibilidad y fuerza", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+            {"id": str(uuid.uuid4()), "name": "Artes Marciales", "description": "Deportes de combate", "active": True, "created_at": datetime.now(timezone.utc).isoformat()},
+        ]
+        await db.sports.insert_many(default_sports)
+        logger.info("Default sports created")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
