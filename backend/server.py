@@ -408,6 +408,25 @@ async def create_category(request: Request, category_data: CategoryCreate, curre
     
     return category
 
+@api_router.delete("/categories/{category_id}")
+async def delete_category(request: Request, category_id: str, current_user: dict = Depends(get_current_user)):
+    # Check if category is in use
+    goods_using_category = await db.goods.count_documents({"category_id": category_id})
+    if goods_using_category > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"No se puede eliminar. Hay {goods_using_category} bienes usando esta categoría"
+        )
+    
+    result = await db.categories.delete_one({"id": category_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(current_user["email"], "DELETE_CATEGORY", "categories", client_ip, f"Deleted: {category_id}")
+    
+    return {"message": "Categoría eliminada exitosamente"}
+
 # Goods endpoints
 @api_router.get("/goods", response_model=List[Good])
 async def get_goods(current_user: dict = Depends(get_current_user)):
