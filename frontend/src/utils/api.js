@@ -17,9 +17,28 @@ export const api = {
   updateUser: (id, data) => axios.put(`${API}/users/${id}`, data, { headers: getAuthHeader() }),
   deleteUser: (id) => axios.delete(`${API}/users/${id}`, { headers: getAuthHeader() }),
 
+  // Instructors Management
+  getInstructorsManagement: () => axios.get(`${API}/instructors-management`, { headers: getAuthHeader() }),
+  createInstructor: (data) => axios.post(`${API}/instructors-management`, data, { headers: getAuthHeader() }),
+  updateInstructor: (id, data) => axios.put(`${API}/instructors-management/${id}`, data, { headers: getAuthHeader() }),
+  deleteInstructor: (id) => axios.delete(`${API}/instructors-management/${id}`, { headers: getAuthHeader() }),
+
+  // Sports Management
+  getSportsManagement: () => axios.get(`${API}/sports-management`, { headers: getAuthHeader() }),
+  createSport: (data) => axios.post(`${API}/sports-management`, data, { headers: getAuthHeader() }),
+  updateSport: (id, data) => axios.put(`${API}/sports-management/${id}`, data, { headers: getAuthHeader() }),
+  deleteSport: (id) => axios.delete(`${API}/sports-management/${id}`, { headers: getAuthHeader() }),
+
+  // Warehouses
+  getWarehouses: () => axios.get(`${API}/warehouses`, { headers: getAuthHeader() }),
+  createWarehouse: (data) => axios.post(`${API}/warehouses`, data, { headers: getAuthHeader() }),
+  updateWarehouse: (id, data) => axios.put(`${API}/warehouses/${id}`, data, { headers: getAuthHeader() }),
+  deleteWarehouse: (id) => axios.delete(`${API}/warehouses/${id}`, { headers: getAuthHeader() }),
+
   // Categories
   getCategories: () => axios.get(`${API}/categories`, { headers: getAuthHeader() }),
   createCategory: (data) => axios.post(`${API}/categories`, data, { headers: getAuthHeader() }),
+  deleteCategory: (id) => axios.delete(`${API}/categories/${id}`, { headers: getAuthHeader() }),
 
   // Goods
   getGoods: () => axios.get(`${API}/goods`, { headers: getAuthHeader() }),
