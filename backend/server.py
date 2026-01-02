@@ -573,7 +573,12 @@ async def download_acta(acta_id: str, current_user: dict = Depends(get_current_u
     if not pdf_path.exists():
         raise HTTPException(status_code=404, detail="Archivo PDF no encontrado")
     
-    return FileResponse(pdf_path, filename=acta["pdf_filename"], media_type="application/pdf")
+    return FileResponse(
+        pdf_path, 
+        filename=acta["pdf_filename"], 
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={acta['pdf_filename']}"}
+    )
 
 @api_router.post("/actas/{assignment_id}/upload-signed")
 async def upload_signed_acta(
