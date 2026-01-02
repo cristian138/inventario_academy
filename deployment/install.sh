@@ -45,9 +45,9 @@ apt update && apt upgrade -y
 echo -e "${GREEN}[2/10] Instalando dependencias básicas...${NC}"
 apt install -y curl git wget nginx supervisor ufw python3-pip python3-venv
 
-# Instalar Node.js 18.x
-echo -e "${GREEN}[3/10] Instalando Node.js...${NC}"
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+# Instalar Node.js 20.x
+echo -e "${GREEN}[3/10] Instalando Node.js 20...${NC}"
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 
 # Instalar Yarn
