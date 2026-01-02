@@ -281,14 +281,16 @@ async def send_email_notification(to_email: str, subject: str, html_content: str
         logger.error(f"Error sending email: {str(e)}")
         return False
 
-# Get instructors and disciplines
+# Get instructors and disciplines from database
 @api_router.get("/instructors")
 async def get_instructors(current_user: dict = Depends(get_current_user)):
-    return {"instructors": INSTRUCTORS}
+    instructors = await db.instructors.find({"active": True}, {"_id": 0}).to_list(1000)
+    return {"instructors": [i["name"] for i in instructors]}
 
 @api_router.get("/disciplines")
 async def get_disciplines(current_user: dict = Depends(get_current_user)):
-    return {"disciplines": DISCIPLINES}
+    sports = await db.sports.find({"active": True}, {"_id": 0}).to_list(1000)
+    return {"disciplines": [s["name"] for s in sports]}
 
 # Auth endpoints
 @api_router.post("/auth/login", response_model=LoginResponse)
