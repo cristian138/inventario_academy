@@ -471,6 +471,19 @@ async def update_instructor(request: Request, instructor_id: str, instructor_dat
 
 @api_router.delete("/instructors-management/{instructor_id}")
 async def delete_instructor(request: Request, instructor_id: str, current_user: dict = Depends(get_current_user)):
+    # Get instructor name first
+    instructor = await db.instructors.find_one({"id": instructor_id}, {"_id": 0})
+    if not instructor:
+        raise HTTPException(status_code=404, detail="Instructor no encontrado")
+    
+    # Check if instructor is in use by any assignments
+    assignments_using_instructor = await db.assignments.count_documents({"instructor_name": instructor["name"]})
+    if assignments_using_instructor > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"No se puede eliminar. Hay {assignments_using_instructor} asignaciones a este instructor"
+        )
+    
     result = await db.instructors.delete_one({"id": instructor_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Instructor no encontrado")
