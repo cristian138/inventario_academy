@@ -38,30 +38,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
 
 security = HTTPBearer()
 
-# Predefined lists
-INSTRUCTORS = [
-    "Juan Pérez",
-    "María González",
-    "Carlos Rodríguez",
-    "Ana Martínez",
-    "Luis Fernández",
-    "Laura Sánchez",
-    "Pedro López",
-    "Carmen Torres"
-]
-
-DISCIPLINES = [
-    "Fútbol",
-    "Baloncesto",
-    "Voleibol",
-    "Natación",
-    "Atletismo",
-    "Tenis",
-    "Gimnasia",
-    "Artes Marciales",
-    "Ciclismo",
-    "Patinaje"
-]
+# Predefined lists - REMOVED, now managed dynamically in database
 
 # Password hashing
 def get_password_hash(password: str) -> str:
