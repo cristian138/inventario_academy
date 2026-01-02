@@ -148,6 +148,18 @@ const Categories = () => {
                 <p className="text-xs text-slate-500 mt-3">
                   Creado: {new Date(category.created_at).toLocaleDateString('es-ES')}
                 </p>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    onClick={() => handleDelete(category.id)}
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 hover:bg-red-50"
+                    data-testid={`delete-category-${category.id}`}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Eliminar
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
