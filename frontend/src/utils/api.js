@@ -27,6 +27,10 @@ export const api = {
   updateGood: (id, data) => axios.put(`${API}/goods/${id}`, data, { headers: getAuthHeader() }),
   deleteGood: (id) => axios.delete(`${API}/goods/${id}`, { headers: getAuthHeader() }),
 
+  // Instructors and Disciplines
+  getInstructors: () => axios.get(`${API}/instructors`, { headers: getAuthHeader() }),
+  getDisciplines: () => axios.get(`${API}/disciplines`, { headers: getAuthHeader() }),
+
   // Assignments
   getAssignments: () => axios.get(`${API}/assignments`, { headers: getAuthHeader() }),
   createAssignment: (data) => axios.post(`${API}/assignments`, data, { headers: getAuthHeader() }),

@@ -13,10 +13,19 @@ import {
   DialogTrigger,
 } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 
 const Assignments = () => {
   const [assignments, setAssignments] = useState([]);
   const [goods, setGoods] = useState([]);
+  const [instructors, setInstructors] = useState([]);
+  const [disciplines, setDisciplines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,12 +41,16 @@ const Assignments = () => {
 
   const loadData = async () => {
     try {
-      const [assignmentsRes, goodsRes] = await Promise.all([
+      const [assignmentsRes, goodsRes, instructorsRes, disciplinesRes] = await Promise.all([
         api.getAssignments(),
         api.getGoods(),
+        api.getInstructors(),
+        api.getDisciplines(),
       ]);
       setAssignments(assignmentsRes.data);
       setGoods(goodsRes.data);
+      setInstructors(instructorsRes.data.instructors);
+      setDisciplines(disciplinesRes.data.disciplines);
     } catch (error) {
       toast.error('Error al cargar datos');
     } finally {
@@ -96,7 +109,7 @@ const Assignments = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -110,7 +123,7 @@ const Assignments = () => {
           <DialogTrigger asChild>
             <Button
               onClick={resetForm}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-blue-600 hover:bg-blue-700"
               data-testid="create-assignment-button"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -125,23 +138,41 @@ const Assignments = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="instructor">Nombre del Instructor</Label>
-                  <Input
-                    id="instructor"
+                  <Select
                     value={formData.instructor_name}
-                    onChange={(e) => setFormData({ ...formData, instructor_name: e.target.value })}
+                    onValueChange={(value) => setFormData({ ...formData, instructor_name: value })}
                     required
-                    data-testid="instructor-name-input"
-                  />
+                  >
+                    <SelectTrigger data-testid="instructor-select">
+                      <SelectValue placeholder="Seleccionar instructor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {instructors.map((instructor) => (
+                        <SelectItem key={instructor} value={instructor}>
+                          {instructor}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="discipline">Disciplina</Label>
-                  <Input
-                    id="discipline"
+                  <Select
                     value={formData.discipline}
-                    onChange={(e) => setFormData({ ...formData, discipline: e.target.value })}
+                    onValueChange={(value) => setFormData({ ...formData, discipline: value })}
                     required
-                    data-testid="discipline-input"
-                  />
+                  >
+                    <SelectTrigger data-testid="discipline-select">
+                      <SelectValue placeholder="Seleccionar disciplina" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {disciplines.map((discipline) => (
+                        <SelectItem key={discipline} value={discipline}>
+                          {discipline}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -154,7 +185,7 @@ const Assignments = () => {
                         <select
                           value={detail.good_id}
                           onChange={(e) => updateDetail(index, 'good_id', e.target.value)}
-                          className="w-full h-11 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          className="w-full h-11 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           required
                           data-testid={`good-select-${index}`}
                         >
@@ -228,7 +259,7 @@ const Assignments = () => {
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-orange-500 hover:bg-orange-600" data-testid="save-assignment-button">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" data-testid="save-assignment-button">
                   Crear Asignación
                 </Button>
               </div>
@@ -257,6 +288,11 @@ const Assignments = () => {
                 <p className="text-xs text-slate-500 mt-1">
                   {new Date(assignment.created_at).toLocaleDateString('es-ES')}
                 </p>
+                {assignment.signed_acta_uploaded && (
+                  <span className="inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+                    Acta Firmada Subida
+                  </span>
+                )}
               </div>
             </div>
 
