@@ -51,11 +51,13 @@ const Layout = () => {
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
-                <Package className="w-6 h-6 text-white" />
-              </div>
+              <img 
+                src="https://customer-assets.emergentagent.com/job_cc84c26b-490c-4e94-9201-0c145d45c1fb/artifacts/p507w2uv_LOGO-PRINCIPAL-CON-FONDO.jpg" 
+                alt="Logo" 
+                className="h-10 w-auto"
+              />
               <div>
-                <h1 className="text-white font-bold text-lg">Inventario</h1>
+                <h1 className="text-white font-bold text-lg">Sistema de Inventarios</h1>
                 <p className="text-slate-400 text-xs">Academia Deportiva</p>
               </div>
             </div>
