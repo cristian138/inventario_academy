@@ -83,9 +83,9 @@ nano .env  # Cambiar dominio
 apt update && apt upgrade -y
 ```
 
-#### 2. Instalar Node.js
+#### 2. Instalar Node.js 20
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 npm install -g yarn
 ```
