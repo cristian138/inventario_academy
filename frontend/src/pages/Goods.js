@@ -140,7 +140,7 @@ const Goods = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -164,7 +164,7 @@ const Goods = () => {
           <DialogTrigger asChild>
             <Button
               onClick={resetForm}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-blue-600 hover:bg-blue-700"
               data-testid="create-good-button"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -284,7 +284,7 @@ const Goods = () => {
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-orange-500 hover:bg-orange-600" data-testid="save-good-button">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" data-testid="save-good-button">
                   {editingGood ? 'Actualizar' : 'Crear'}
                 </Button>
               </div>

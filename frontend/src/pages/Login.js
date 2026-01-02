@@ -35,7 +35,7 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 to-slate-900/70"></div>
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <div className="text-white max-w-md">
-            <div className="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center mb-6">
+            <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mb-6">
               <Package className="w-10 h-10" />
             </div>
             <h1 className="text-5xl font-black mb-4 leading-tight">Sistema de Inventarios</h1>
@@ -67,7 +67,7 @@ const Login = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
+                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all duration-200"
                     placeholder="correo@ejemplo.com"
                     required
                     data-testid="email-input"
@@ -86,7 +86,7 @@ const Login = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
+                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all duration-200"
                     placeholder="••••••••"
                     required
                     data-testid="password-input"
@@ -97,7 +97,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 data-testid="login-button"
               >
                 {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}

@@ -55,7 +55,7 @@ const Categories = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -67,7 +67,7 @@ const Categories = () => {
         <h2 className="text-2xl font-bold text-slate-900">Categorías de Bienes</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-orange-500 hover:bg-orange-600" data-testid="create-category-button">
+            <Button className="bg-blue-600 hover:bg-blue-700" data-testid="create-category-button">
               <Plus className="w-4 h-4 mr-2" />
               Nueva Categoría
             </Button>
@@ -109,7 +109,7 @@ const Categories = () => {
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-orange-500 hover:bg-orange-600" data-testid="save-category-button">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" data-testid="save-category-button">
                   Crear
                 </Button>
               </div>
@@ -127,8 +127,8 @@ const Categories = () => {
             data-testid={`category-card-${category.id}`}
           >
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
-                <FolderOpen className="w-6 h-6 text-orange-600" />
+              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <FolderOpen className="w-6 h-6 text-blue-700" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-lg text-slate-900 mb-2 truncate">{category.name}</h3>

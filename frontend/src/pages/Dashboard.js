@@ -26,7 +26,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -80,8 +80,8 @@ const Dashboard = () => {
 
         <div className="bg-white rounded-xl border border-slate-200 p-6 card-hover" data-testid="assignments-card">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-              <ClipboardList className="w-6 h-6 text-orange-600" />
+            <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+              <ClipboardList className="w-6 h-6 text-blue-700" />
             </div>
             <TrendingUp className="w-5 h-5 text-slate-400" />
           </div>

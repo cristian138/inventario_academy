@@ -81,7 +81,7 @@ const Layout = () => {
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                     isActive
-                      ? 'bg-orange-500 text-white shadow-lg'
+                      ? 'bg-blue-600 text-white shadow-lg'
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                   data-testid={`nav-${item.label.toLowerCase()}`}
@@ -137,7 +137,7 @@ const Layout = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-sm font-medium capitalize">
+            <div className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium capitalize">
               {user?.role}
             </div>
           </div>

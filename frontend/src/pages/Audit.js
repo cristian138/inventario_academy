@@ -40,7 +40,7 @@ const Audit = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -48,7 +48,7 @@ const Audit = () => {
   return (
     <div className="space-y-6" data-testid="audit-page">
       <div className="flex items-center gap-3">
-        <Shield className="w-8 h-8 text-orange-500" />
+        <Shield className="w-8 h-8 text-blue-600" />
         <h2 className="text-2xl font-bold text-slate-900">Auditoría del Sistema</h2>
       </div>
 
