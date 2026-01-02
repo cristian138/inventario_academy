@@ -79,7 +79,8 @@ const Warehouses = () => {
       toast.success('Bodega eliminada exitosamente');
       loadWarehouses();
     } catch (error) {
-      toast.error('Error al eliminar bodega');
+      const errorMessage = error.response?.data?.detail || 'Error al eliminar bodega';
+      toast.error(errorMessage);
     }
   };
 
