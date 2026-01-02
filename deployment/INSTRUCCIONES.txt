@@ -1,0 +1,201 @@
+════════════════════════════════════════════════════════════════
+   SISTEMA DE INVENTARIOS - ACADEMIA JOTUNS CLUB SAS
+   Instalación en VPS Ubuntu - Instrucciones Simplificadas
+════════════════════════════════════════════════════════════════
+
+📦 ARCHIVOS NECESARIOS:
+────────────────────────────────────────────────────────────────
+✓ install.sh              - Script de instalación inicial
+✓ setup-app.sh            - Script de configuración
+✓ backup.sh               - Script de backup automático
+✓ inventario-codigo.tar.gz - Código de la aplicación
+✓ GUIA_DEPLOYMENT.md       - Guía completa (léala para detalles)
+✓ QUICK_START.md           - Guía rápida
+
+════════════════════════════════════════════════════════════════
+📋 PASOS DE INSTALACIÓN (15 minutos)
+════════════════════════════════════════════════════════════════
+
+┌─ PASO 1: Preparar VPS ────────────────────────────────────────┐
+│                                                                │
+│ Requisitos:                                                    │
+│ • Ubuntu 20.04 o 22.04                                         │
+│ • Mínimo 2GB RAM                                               │
+│ • 20GB disco                                                   │
+│ • Dominio configurado (A record → IP del VPS)                 │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ PASO 2: Subir archivos al VPS ───────────────────────────────┐
+│                                                                │
+│ Desde su computadora:                                          │
+│                                                                │
+│ $ scp install.sh root@TU_IP:/root/                            │
+│ $ scp setup-app.sh root@TU_IP:/root/                          │
+│ $ scp backup.sh root@TU_IP:/root/                             │
+│ $ scp inventario-codigo.tar.gz root@TU_IP:/root/              │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ PASO 3: Conectarse al VPS ───────────────────────────────────┐
+│                                                                │
+│ $ ssh root@TU_IP                                              │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ PASO 4: Dar permisos y ejecutar instalación ─────────────────┐
+│                                                                │
+│ $ cd /root                                                     │
+│ $ chmod +x *.sh                                                │
+│ $ ./install.sh                                                 │
+│                                                                │
+│ Responda las preguntas:                                        │
+│ • Dominio: inventario.suempresa.com                            │
+│ • Email: su@email.com                                          │
+│ • ¿Instalar SSL?: s                                            │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ PASO 5: Descomprimir código ─────────────────────────────────┐
+│                                                                │
+│ $ tar -xzf inventario-codigo.tar.gz -C /var/www/inventario/   │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ PASO 6: Configurar variables de entorno ─────────────────────┐
+│                                                                │
+│ Backend:                                                       │
+│ $ cd /var/www/inventario/backend                              │
+│ $ cp .env.example .env                                         │
+│ $ nano .env                                                    │
+│   (Verificar MONGO_URL y JWT_SECRET_KEY)                      │
+│                                                                │
+│ Frontend:                                                      │
+│ $ cd /var/www/inventario/frontend                             │
+│ $ cp .env.example .env                                         │
+│ $ nano .env                                                    │
+│   (Cambiar REACT_APP_BACKEND_URL a su dominio)                │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ PASO 7: Configurar aplicación ───────────────────────────────┐
+│                                                                │
+│ $ cd /root                                                     │
+│ $ ./setup-app.sh                                               │
+│                                                                │
+│ Este script:                                                   │
+│ • Instala dependencias Python                                  │
+│ • Instala dependencias Node.js                                 │
+│ • Compila el frontend                                          │
+│ • Configura Nginx                                              │
+│ • Configura servicios systemd                                  │
+│ • Instala certificado SSL                                      │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════
+✅ VERIFICACIÓN
+════════════════════════════════════════════════════════════════
+
+Verificar que todo funciona:
+
+$ systemctl status inventario-backend
+$ systemctl status nginx
+$ systemctl status mongod
+
+Debería ver "active (running)" en los tres.
+
+════════════════════════════════════════════════════════════════
+🌐 ACCEDER A LA APLICACIÓN
+════════════════════════════════════════════════════════════════
+
+URL: https://su-dominio.com
+
+Credenciales iniciales:
+• Email:    admin@academia.com
+• Password: admin123
+
+⚠️  IMPORTANTE: Cambie estas credenciales inmediatamente
+
+════════════════════════════════════════════════════════════════
+🔧 COMANDOS ÚTILES
+════════════════════════════════════════════════════════════════
+
+Ver logs del backend:
+$ journalctl -u inventario-backend -f
+
+Ver logs de Nginx:
+$ tail -f /var/www/inventario/logs/nginx-error.log
+
+Reiniciar servicios:
+$ systemctl restart inventario-backend
+$ systemctl restart nginx
+
+Ver estado de servicios:
+$ systemctl status inventario-backend nginx mongod
+
+════════════════════════════════════════════════════════════════
+💾 CONFIGURAR BACKUPS AUTOMÁTICOS
+════════════════════════════════════════════════════════════════
+
+$ cp /root/backup.sh /usr/local/bin/
+$ chmod +x /usr/local/bin/backup.sh
+$ crontab -e
+
+Agregar esta línea para backup diario a las 2 AM:
+0 2 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1
+
+════════════════════════════════════════════════════════════════
+📧 CONFIGURAR NOTIFICACIONES EMAIL (Opcional)
+════════════════════════════════════════════════════════════════
+
+1. Obtener API key de Resend: https://resend.com
+
+2. Editar configuración:
+   $ nano /var/www/inventario/backend/.env
+
+3. Agregar:
+   RESEND_API_KEY=re_xxxxxxxxxxxxx
+
+4. Reiniciar backend:
+   $ systemctl restart inventario-backend
+
+════════════════════════════════════════════════════════════════
+🆘 PROBLEMAS COMUNES
+════════════════════════════════════════════════════════════════
+
+Backend no inicia:
+→ Ver logs: journalctl -u inventario-backend -n 50
+
+Nginx error 502:
+→ Verificar: netstat -tulpn | grep 8001
+
+MongoDB no conecta:
+→ Reiniciar: systemctl restart mongod
+
+SSL no funciona:
+→ Verificar DNS: nslookup su-dominio.com
+→ Reejecutar: certbot --nginx -d su-dominio.com
+
+════════════════════════════════════════════════════════════════
+📚 DOCUMENTACIÓN ADICIONAL
+════════════════════════════════════════════════════════════════
+
+• GUIA_DEPLOYMENT.md - Guía completa con todos los detalles
+• QUICK_START.md     - Guía rápida alternativa
+
+════════════════════════════════════════════════════════════════
+✨ ¡INSTALACIÓN COMPLETADA!
+════════════════════════════════════════════════════════════════
+
+Su Sistema de Inventarios está listo para usar.
+
+Próximos pasos recomendados:
+1. ✓ Cambiar credenciales por defecto
+2. ✓ Configurar backups automáticos
+3. ✓ Configurar notificaciones email
+4. ✓ Agregar usuarios del sistema
+5. ✓ Crear categorías e instructores
+6. ✓ Comenzar a registrar inventario
+
+════════════════════════════════════════════════════════════════
