@@ -12,8 +12,8 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const Reports = () => {
   const [reportType, setReportType] = useState('inventory');
@@ -97,12 +97,12 @@ const Reports = () => {
         item.location,
       ]);
 
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Nombre', 'Categoría', 'Estado', 'Total', 'Disponible', 'Ubicación']],
         body: tableData,
         startY: 35,
         styles: { fontSize: 8 },
-        headStyles: { fillColor: [249, 115, 22] },
+        headStyles: { fillColor: [30, 64, 175] },
       });
     } else {
       const tableData = [];
@@ -118,12 +118,12 @@ const Reports = () => {
         });
       });
 
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Instructor', 'Disciplina', 'Bien', 'Cantidad', 'Fecha']],
         body: tableData,
         startY: 35,
         styles: { fontSize: 8 },
-        headStyles: { fillColor: [249, 115, 22] },
+        headStyles: { fillColor: [30, 64, 175] },
       });
     }
 
@@ -153,7 +153,7 @@ const Reports = () => {
             <Button
               onClick={generateReport}
               disabled={loading}
-              className="w-full bg-orange-500 hover:bg-orange-600"
+              className="w-full bg-blue-600 hover:bg-blue-700"
               data-testid="generate-report-button"
             >
               {loading ? 'Generando...' : 'Generar Reporte'}

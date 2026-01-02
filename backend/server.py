@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, UploadFile, File, Request, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
@@ -17,9 +17,10 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.units import inch
 import io
+import shutil
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -37,11 +38,30 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
 
 security = HTTPBearer()
 
-# Create the main app
-app = FastAPI()
+# Predefined lists
+INSTRUCTORS = [
+    "Juan Pérez",
+    "María González",
+    "Carlos Rodríguez",
+    "Ana Martínez",
+    "Luis Fernández",
+    "Laura Sánchez",
+    "Pedro López",
+    "Carmen Torres"
+]
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
+DISCIPLINES = [
+    "Fútbol",
+    "Baloncesto",
+    "Voleibol",
+    "Natación",
+    "Atletismo",
+    "Tenis",
+    "Gimnasia",
+    "Artes Marciales",
+    "Ciclismo",
+    "Patinaje"
+]
 
 # Password hashing
 def get_password_hash(password: str) -> str:
@@ -89,6 +109,12 @@ async def create_audit_log(user_email: str, action: str, module: str, ip: str, d
     }
     await db.audit_logs.insert_one(audit_log)
 
+# Create the main app
+app = FastAPI()
+
+# Create a router with the /api prefix
+api_router = APIRouter(prefix="/api")
+
 # Models
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -102,7 +128,7 @@ class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: str  # "admin" or "control"
+    role: str
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
@@ -134,7 +160,7 @@ class GoodCreate(BaseModel):
     name: str
     category_id: str
     description: str
-    status: str  # "disponible", "asignado", "mantenimiento", "baja"
+    status: str
     quantity: int
     location: str
     responsible: str
@@ -190,6 +216,15 @@ class DashboardStats(BaseModel):
     total_categories: int
     recent_assignments: List[dict]
 
+# Get instructors and disciplines
+@api_router.get("/instructors")
+async def get_instructors(current_user: dict = Depends(get_current_user)):
+    return {"instructors": INSTRUCTORS}
+
+@api_router.get("/disciplines")
+async def get_disciplines(current_user: dict = Depends(get_current_user)):
+    return {"disciplines": DISCIPLINES}
+
 # Auth endpoints
 @api_router.post("/auth/login", response_model=LoginResponse)
 async def login(request: Request, login_data: LoginRequest):
@@ -228,7 +263,6 @@ async def create_user(request: Request, user_data: UserCreate, current_user: dic
     if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="No autorizado")
     
-    # Check if email exists
     existing = await db.users.find_one({"email": user_data.email})
     if existing:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
@@ -245,7 +279,6 @@ async def create_user(request: Request, user_data: UserCreate, current_user: dic
     
     await db.users.insert_one(user)
     
-    # Audit log
     client_ip = request.client.host if request.client else "unknown"
     await create_audit_log(current_user["email"], "CREATE_USER", "users", client_ip, f"Created user: {user_data.email}")
     
@@ -266,7 +299,6 @@ async def update_user(request: Request, user_id: str, user_data: UserUpdate, cur
     if update_data:
         await db.users.update_one({"id": user_id}, {"$set": update_data})
         
-        # Audit log
         client_ip = request.client.host if request.client else "unknown"
         await create_audit_log(current_user["email"], "UPDATE_USER", "users", client_ip, f"Updated user: {user_id}")
     
@@ -282,7 +314,6 @@ async def delete_user(request: Request, user_id: str, current_user: dict = Depen
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
-    # Audit log
     client_ip = request.client.host if request.client else "unknown"
     await create_audit_log(current_user["email"], "DELETE_USER", "users", client_ip, f"Deleted user: {user_id}")
     
@@ -305,7 +336,6 @@ async def create_category(request: Request, category_data: CategoryCreate, curre
     
     await db.categories.insert_one(category)
     
-    # Audit log
     client_ip = request.client.host if request.client else "unknown"
     await create_audit_log(current_user["email"], "CREATE_CATEGORY", "categories", client_ip, f"Created: {category_data.name}")
     
@@ -334,7 +364,6 @@ async def create_good(request: Request, good_data: GoodCreate, current_user: dic
     
     await db.goods.insert_one(good)
     
-    # Audit log
     client_ip = request.client.host if request.client else "unknown"
     await create_audit_log(current_user["email"], "CREATE_GOOD", "goods", client_ip, f"Created: {good_data.name}")
     
@@ -351,7 +380,6 @@ async def update_good(request: Request, good_id: str, good_data: GoodUpdate, cur
     if update_data:
         await db.goods.update_one({"id": good_id}, {"$set": update_data})
         
-        # Audit log
         client_ip = request.client.host if request.client else "unknown"
         await create_audit_log(current_user["email"], "UPDATE_GOOD", "goods", client_ip, f"Updated: {good_id}")
     
@@ -364,7 +392,6 @@ async def delete_good(request: Request, good_id: str, current_user: dict = Depen
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Bien no encontrado")
     
-    # Audit log
     client_ip = request.client.host if request.client else "unknown"
     await create_audit_log(current_user["email"], "DELETE_GOOD", "goods", client_ip, f"Deleted: {good_id}")
     
@@ -375,7 +402,6 @@ async def delete_good(request: Request, good_id: str, current_user: dict = Depen
 async def get_assignments(current_user: dict = Depends(get_current_user)):
     assignments = await db.assignments.find({}, {"_id": 0}).to_list(1000)
     
-    # Add details for each assignment
     for assignment in assignments:
         details = await db.assignment_details.find(
             {"assignment_id": assignment["id"]}, 
@@ -387,7 +413,7 @@ async def get_assignments(current_user: dict = Depends(get_current_user)):
 
 @api_router.post("/assignments")
 async def create_assignment(request: Request, assignment_data: AssignmentCreate, current_user: dict = Depends(get_current_user)):
-    # Validate stock for each item
+    # Validate stock
     for detail in assignment_data.details:
         good = await db.goods.find_one({"id": detail.good_id}, {"_id": 0})
         if not good:
@@ -399,7 +425,6 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
                 detail=f"Stock insuficiente para {good['name']}. Disponible: {good['available_quantity']}, Solicitado: {detail.quantity_assigned}"
             )
     
-    # Create assignment
     assignment_id = str(uuid.uuid4())
     assignment = {
         "id": assignment_id,
@@ -408,12 +433,12 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
         "created_by": current_user["email"],
         "created_at": datetime.now(timezone.utc).isoformat(),
         "status": "activa",
-        "notes": assignment_data.notes
+        "notes": assignment_data.notes,
+        "signed_acta_uploaded": False
     }
     
     await db.assignments.insert_one(assignment)
     
-    # Create details and update stock
     details_list = []
     for detail in assignment_data.details:
         detail_doc = {
@@ -426,30 +451,36 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
         await db.assignment_details.insert_one(detail_doc)
         details_list.append(detail_doc)
         
-        # Update available quantity
         await db.goods.update_one(
             {"id": detail.good_id},
             {"$inc": {"available_quantity": -detail.quantity_assigned}}
         )
     
-    # Generate PDF acta
+    # Generate PDF
     acta_code = f"ACTA-{assignment_id[:8].upper()}"
     pdf_filename = f"{acta_code}.pdf"
     pdf_path = ROOT_DIR / "actas" / pdf_filename
     pdf_path.parent.mkdir(exist_ok=True)
     
-    # Create PDF
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
     elements = []
     styles = getSampleStyleSheet()
     
-    # Title
-    title = Paragraph(f"<b>ACTA DE ENTREGA DE INVENTARIO</b>", styles['Title'])
+    # Logo
+    logo_url = "https://customer-assets.emergentagent.com/job_cc84c26b-490c-4e94-9201-0c145d45c1fb/artifacts/p507w2uv_LOGO-PRINCIPAL-CON-FONDO.jpg"
+    try:
+        img = Image(logo_url, width=2*inch, height=0.8*inch)
+        elements.append(img)
+    except:
+        pass
+    
+    elements.append(Spacer(1, 0.3*inch))
+    
+    title = Paragraph("<b>ACTA DE ENTREGA DE INVENTARIO</b>", styles['Title'])
     elements.append(title)
     elements.append(Spacer(1, 0.3*inch))
     
-    # Info
     info = f"""<br/>
     <b>Código:</b> {acta_code}<br/>
     <b>Instructor:</b> {assignment_data.instructor_name}<br/>
@@ -460,7 +491,6 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
     elements.append(Paragraph(info, styles['Normal']))
     elements.append(Spacer(1, 0.3*inch))
     
-    # Table of goods
     table_data = [["Bien", "Descripción", "Cantidad"]]
     for detail in assignment_data.details:
         good = await db.goods.find_one({"id": detail.good_id}, {"_id": 0})
@@ -468,7 +498,7 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
     
     table = Table(table_data)
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E40AF')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -483,13 +513,25 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
         elements.append(Spacer(1, 0.3*inch))
         elements.append(Paragraph(f"<b>Notas:</b> {assignment_data.notes}", styles['Normal']))
     
+    # Signature section
+    elements.append(Spacer(1, inch))
+    sig_table_data = [
+        ["_" * 30, "_" * 30],
+        ["Firma Instructor", "Firma Responsable"]
+    ]
+    sig_table = Table(sig_table_data, colWidths=[2.5*inch, 2.5*inch])
+    sig_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 10),
+    ]))
+    elements.append(sig_table)
+    
     doc.build(elements)
     
-    # Save PDF
     with open(pdf_path, 'wb') as f:
         f.write(buffer.getvalue())
     
-    # Save acta record
     acta = {
         "id": str(uuid.uuid4()),
         "assignment_id": assignment_id,
@@ -501,7 +543,6 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
     }
     await db.actas.insert_one(acta)
     
-    # Audit log
     client_ip = request.client.host if request.client else "unknown"
     await create_audit_log(current_user["email"], "CREATE_ASSIGNMENT", "assignments", client_ip, f"Instructor: {assignment_data.instructor_name}")
     
@@ -516,7 +557,6 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
 async def get_actas(current_user: dict = Depends(get_current_user)):
     actas = await db.actas.find({}, {"_id": 0}).to_list(1000)
     
-    # Add assignment info
     for acta in actas:
         assignment = await db.assignments.find_one({"id": acta["assignment_id"]}, {"_id": 0})
         acta["assignment"] = assignment
@@ -535,23 +575,67 @@ async def download_acta(acta_id: str, current_user: dict = Depends(get_current_u
     
     return FileResponse(pdf_path, filename=acta["pdf_filename"], media_type="application/pdf")
 
+@api_router.post("/actas/{assignment_id}/upload-signed")
+async def upload_signed_acta(
+    request: Request,
+    assignment_id: str, 
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    assignment = await db.assignments.find_one({"id": assignment_id}, {"_id": 0})
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Asignación no encontrada")
+    
+    # Save uploaded file
+    upload_dir = ROOT_DIR / "actas" / "signed"
+    upload_dir.mkdir(exist_ok=True, parents=True)
+    
+    file_extension = file.filename.split(".")[-1]
+    signed_filename = f"SIGNED_{assignment_id[:8].upper()}.{file_extension}"
+    file_path = upload_dir / signed_filename
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Update assignment
+    await db.assignments.update_one(
+        {"id": assignment_id},
+        {"$set": {
+            "signed_acta_uploaded": True,
+            "signed_acta_filename": signed_filename,
+            "signed_acta_uploaded_at": datetime.now(timezone.utc).isoformat(),
+            "signed_acta_uploaded_by": current_user["email"]
+        }}
+    )
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(current_user["email"], "UPLOAD_SIGNED_ACTA", "actas", client_ip, f"Assignment: {assignment_id}")
+    
+    return {"message": "Acta firmada subida exitosamente", "filename": signed_filename}
+
+@api_router.get("/actas/{assignment_id}/download-signed")
+async def download_signed_acta(assignment_id: str, current_user: dict = Depends(get_current_user)):
+    assignment = await db.assignments.find_one({"id": assignment_id}, {"_id": 0})
+    if not assignment or not assignment.get("signed_acta_uploaded"):
+        raise HTTPException(status_code=404, detail="Acta firmada no encontrada")
+    
+    file_path = ROOT_DIR / "actas" / "signed" / assignment["signed_acta_filename"]
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+    
+    return FileResponse(file_path, filename=assignment["signed_acta_filename"], media_type="application/pdf")
+
 # Dashboard stats
 @api_router.get("/dashboard/stats", response_model=DashboardStats)
 async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
-    # Total goods
     goods = await db.goods.find({}, {"_id": 0}).to_list(10000)
     total_goods = len(goods)
     total_quantity = sum(g["quantity"] for g in goods)
     available_quantity = sum(g["available_quantity"] for g in goods)
     assigned_quantity = total_quantity - available_quantity
     
-    # Total assignments
     assignments = await db.assignments.count_documents({})
-    
-    # Total categories
     categories = await db.categories.count_documents({})
-    
-    # Recent assignments
     recent = await db.assignments.find({}, {"_id": 0}).sort("created_at", -1).limit(5).to_list(5)
     
     return {
@@ -573,7 +657,7 @@ async def get_audit_logs(current_user: dict = Depends(get_current_user)):
     logs = await db.audit_logs.find({}, {"_id": 0}).sort("timestamp", -1).limit(100).to_list(100)
     return logs
 
-# Reports endpoint
+# Reports
 @api_router.get("/reports")
 async def get_reports(
     report_type: str,
@@ -583,7 +667,6 @@ async def get_reports(
     current_user: dict = Depends(get_current_user)
 ):
     if report_type == "inventory":
-        # All goods with category info
         goods = await db.goods.find({}, {"_id": 0}).to_list(10000)
         for good in goods:
             category = await db.categories.find_one({"id": good["category_id"]}, {"_id": 0})
@@ -591,7 +674,6 @@ async def get_reports(
         return goods
     
     elif report_type == "assignments":
-        # All assignments with details
         query = {}
         if instructor_name:
             query["instructor_name"] = instructor_name
@@ -605,7 +687,6 @@ async def get_reports(
                 {"_id": 0}
             ).to_list(1000)
             
-            # Add good names
             for detail in details:
                 good = await db.goods.find_one({"id": detail["good_id"]}, {"_id": 0})
                 detail["good_name"] = good["name"] if good else "N/A"
@@ -616,7 +697,7 @@ async def get_reports(
     
     return []
 
-# Include the router in the main app
+# Include the router
 app.include_router(api_router)
 
 app.add_middleware(
@@ -627,17 +708,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Startup event to create default admin user
 @app.on_event("startup")
 async def startup_event():
-    # Create default admin if not exists
     admin = await db.users.find_one({"email": "admin@academia.com"})
     if not admin:
         default_admin = {
