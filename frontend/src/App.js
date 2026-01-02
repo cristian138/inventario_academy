@@ -74,6 +74,9 @@ function AppRoutes() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="users" element={<AdminRoute><Users /></AdminRoute>} />
+        <Route path="instructors" element={<Instructors />} />
+        <Route path="sports" element={<Sports />} />
+        <Route path="warehouses" element={<Warehouses />} />
         <Route path="categories" element={<Categories />} />
         <Route path="goods" element={<Goods />} />
         <Route path="assignments" element={<Assignments />} />
