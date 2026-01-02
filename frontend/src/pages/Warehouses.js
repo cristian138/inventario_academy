@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../utils/api';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Search, UserCheck, UserX } from 'lucide-react';
+import { Plus, Edit, Trash2, Warehouse as WarehouseIcon } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import {
@@ -13,29 +13,28 @@ import {
 } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
 
-const Instructors = () => {
-  const [instructors, setInstructors] = useState([]);
+const Warehouses = () => {
+  const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingInstructor, setEditingInstructor] = useState(null);
+  const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    phone: '',
-    specialization: '',
+    location: '',
+    capacity: 0,
+    responsible: '',
   });
 
   useEffect(() => {
-    loadInstructors();
+    loadWarehouses();
   }, []);
 
-  const loadInstructors = async () => {
+  const loadWarehouses = async () => {
     try {
-      const response = await api.getInstructorsManagement();
-      setInstructors(response.data);
+      const response = await api.getWarehouses();
+      setWarehouses(response.data);
     } catch (error) {
-      toast.error('Error al cargar instructores');
+      toast.error('Error al cargar bodegas');
     } finally {
       setLoading(false);
     }
@@ -45,70 +44,54 @@ const Instructors = () => {
     e.preventDefault();
     
     try {
-      if (editingInstructor) {
-        await api.updateInstructor(editingInstructor.id, formData);
-        toast.success('Instructor actualizado exitosamente');
+      if (editingWarehouse) {
+        await api.updateWarehouse(editingWarehouse.id, formData);
+        toast.success('Bodega actualizada exitosamente');
       } else {
-        await api.createInstructor(formData);
-        toast.success('Instructor creado exitosamente');
+        await api.createWarehouse(formData);
+        toast.success('Bodega creada exitosamente');
       }
       
       setIsDialogOpen(false);
       resetForm();
-      loadInstructors();
+      loadWarehouses();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Error al guardar instructor');
+      toast.error(error.response?.data?.detail || 'Error al guardar bodega');
     }
   };
 
-  const handleEdit = (instructor) => {
-    setEditingInstructor(instructor);
+  const handleEdit = (warehouse) => {
+    setEditingWarehouse(warehouse);
     setFormData({
-      name: instructor.name,
-      email: instructor.email,
-      phone: instructor.phone,
-      specialization: instructor.specialization,
+      name: warehouse.name,
+      location: warehouse.location,
+      capacity: warehouse.capacity,
+      responsible: warehouse.responsible,
     });
     setIsDialogOpen(true);
   };
 
-  const handleToggleStatus = async (instructorId, currentStatus) => {
-    try {
-      await api.updateInstructor(instructorId, { active: !currentStatus });
-      toast.success('Estado actualizado exitosamente');
-      loadInstructors();
-    } catch (error) {
-      toast.error('Error al actualizar estado');
-    }
-  };
-
-  const handleDelete = async (instructorId) => {
-    if (!window.confirm('¿Estás seguro de eliminar este instructor?')) return;
+  const handleDelete = async (warehouseId) => {
+    if (!window.confirm('¿Estás seguro de eliminar esta bodega?')) return;
     
     try {
-      await api.deleteInstructor(instructorId);
-      toast.success('Instructor eliminado exitosamente');
-      loadInstructors();
+      await api.deleteWarehouse(warehouseId);
+      toast.success('Bodega eliminada exitosamente');
+      loadWarehouses();
     } catch (error) {
-      toast.error('Error al eliminar instructor');
+      toast.error('Error al eliminar bodega');
     }
   };
 
   const resetForm = () => {
-    setEditingInstructor(null);
+    setEditingWarehouse(null);
     setFormData({
       name: '',
-      email: '',
-      phone: '',
-      specialization: '',
+      location: '',
+      capacity: 0,
+      responsible: '',
     });
   };
-
-  const filteredInstructors = instructors.filter(
-    (instructor) =>
-      instructor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      instructor.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (loading) {
     return (
@@ -119,74 +102,65 @@ const Instructors = () => {
   }
 
   return (
-    <div className="space-y-6" data-testid="instructors-page">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <Input
-            type="text"
-            placeholder="Buscar instructores..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-            data-testid="search-instructors-input"
-          />
-        </div>
+    <div className="space-y-6" data-testid="warehouses-page">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-slate-900">Bodegas</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
               onClick={resetForm}
               className="bg-blue-600 hover:bg-blue-700"
-              data-testid="create-instructor-button"
+              data-testid="create-warehouse-button"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Nuevo Instructor
+              Nueva Bodega
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingInstructor ? 'Editar Instructor' : 'Crear Instructor'}</DialogTitle>
+              <DialogTitle>{editingWarehouse ? 'Editar Bodega' : 'Crear Bodega'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">Nombre Completo</Label>
+                <Label htmlFor="name">Nombre</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  data-testid="instructor-name-input"
+                  data-testid="warehouse-name-input"
                 />
               </div>
               <div>
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="location">Ubicación</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   required
-                  data-testid="instructor-email-input"
+                  data-testid="warehouse-location-input"
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Teléfono</Label>
+                <Label htmlFor="capacity">Capacidad</Label>
                 <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  id="capacity"
+                  type="number"
+                  min="0"
+                  value={formData.capacity}
+                  onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 0 })}
                   required
-                  data-testid="instructor-phone-input"
+                  data-testid="warehouse-capacity-input"
                 />
               </div>
               <div>
-                <Label htmlFor="specialization">Especialización</Label>
+                <Label htmlFor="responsible">Responsable</Label>
                 <Input
-                  id="specialization"
-                  value={formData.specialization}
-                  onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                  id="responsible"
+                  value={formData.responsible}
+                  onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
                   required
-                  data-testid="instructor-specialization-input"
+                  data-testid="warehouse-responsible-input"
                 />
               </div>
               <div className="flex justify-end gap-2">
@@ -200,8 +174,8 @@ const Instructors = () => {
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" data-testid="save-instructor-button">
-                  {editingInstructor ? 'Actualizar' : 'Crear'}
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" data-testid="save-warehouse-button">
+                  {editingWarehouse ? 'Actualizar' : 'Crear'}
                 </Button>
               </div>
             </form>
@@ -209,94 +183,59 @@ const Instructors = () => {
         </Dialog>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  Instructor
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  Especialización
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  Teléfono
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {filteredInstructors.map((instructor) => (
-                <tr
-                  key={instructor.id}
-                  className="hover:bg-slate-50 transition-colors duration-200"
-                  data-testid={`instructor-row-${instructor.id}`}
-                >
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-semibold text-slate-900">{instructor.name}</p>
-                      <p className="text-sm text-slate-600">{instructor.email}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-slate-700">{instructor.specialization}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-slate-700">{instructor.phone}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${
-                        instructor.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {instructor.active ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => handleEdit(instructor)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                        data-testid={`edit-instructor-${instructor.id}`}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(instructor.id, instructor.active)}
-                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-200"
-                        data-testid={`toggle-instructor-${instructor.id}`}
-                      >
-                        {instructor.active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(instructor.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                        data-testid={`delete-instructor-${instructor.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {filteredInstructors.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-slate-500">No se encontraron instructores</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {warehouses.map((warehouse) => (
+          <div
+            key={warehouse.id}
+            className="bg-white rounded-xl border border-slate-200 p-6 card-hover"
+            data-testid={`warehouse-card-${warehouse.id}`}
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <WarehouseIcon className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-lg text-slate-900 mb-2">{warehouse.name}</h3>
+                <div className="space-y-1 text-sm text-slate-600 mb-4">
+                  <p><span className="font-semibold">Ubicación:</span> {warehouse.location}</p>
+                  <p><span className="font-semibold">Capacidad:</span> {warehouse.capacity} m²</p>
+                  <p><span className="font-semibold">Responsable:</span> {warehouse.responsible}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleEdit(warehouse)}
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    data-testid={`edit-warehouse-${warehouse.id}`}
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    Editar
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(warehouse.id)}
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 hover:bg-red-50"
+                    data-testid={`delete-warehouse-${warehouse.id}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        ))}
       </div>
+
+      {warehouses.length === 0 && (
+        <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+          <WarehouseIcon className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-500 text-lg">No hay bodegas aún</p>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Instructors;
+export default Warehouses;
