@@ -259,7 +259,7 @@ yarn build
 ls -la build/
 ```
 
-## 4.7 Verificar que los Estilos se Generaron Correctamente
+## 4.5 Verificar que los Estilos se Generaron Correctamente
 
 ⚠️ **PASO CRÍTICO**: Debe verificar que Tailwind CSS procesó correctamente los estilos.
 
