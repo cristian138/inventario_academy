@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 class InventoryAPITester:
-    def __init__(self, base_url="https://inventory-manager-191.preview.emergentagent.com"):
+    def __init__(self, base_url="https://trainer-supply.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
