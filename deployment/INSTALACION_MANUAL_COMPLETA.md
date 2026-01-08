@@ -225,42 +225,29 @@ ENABLE_HEALTH_CHECK=false
 
 Guardar: `Ctrl+X`, `Y`, `Enter`
 
-## 4.3 Crear craco.config.js
+## 4.3 Reemplazar craco.config.js
+
+⚠️ **IMPORTANTE**: El archivo `craco.config.js` que viene en el paquete NO funciona en producción.
+Debe reemplazarlo con esta versión simplificada:
 
 ```bash
 cd /var/www/inventario/frontend
-nano craco.config.js
-```
 
-Contenido:
+# Eliminar el archivo existente
+rm -f craco.config.js
 
-```javascript
+# Crear el nuevo archivo
+cat > craco.config.js << 'EOF'
+// craco.config.js - Configuración para producción
 const path = require("path");
-require("dotenv").config();
 
-const isDevServer = process.env.NODE_ENV !== "production";
-
-const config = {
-  enableHealthCheck: process.env.ENABLE_HEALTH_CHECK === "true",
-  enableVisualEdits: isDevServer,
-};
-
-const webpackConfig = {
+module.exports = {
   style: {
     postcss: {
       plugins: [
         require('tailwindcss'),
         require('autoprefixer'),
       ],
-    },
-  },
-  eslint: {
-    configure: {
-      extends: ["plugin:react-hooks/recommended"],
-      rules: {
-        "react-hooks/rules-of-hooks": "error",
-        "react-hooks/exhaustive-deps": "warn",
-      },
     },
   },
   webpack: {
@@ -280,17 +267,22 @@ const webpackConfig = {
     },
   },
 };
-
-webpackConfig.devServer = (devServerConfig) => {
-  return devServerConfig;
-};
-
-module.exports = webpackConfig;
+EOF
 ```
 
-Guardar: `Ctrl+X`, `Y`, `Enter`
+## 4.4 Verificar Archivos de Configuración
 
-## 4.4 Instalar Dependencias y Compilar Frontend
+Antes de continuar, verifique que existan estos archivos:
+
+```bash
+ls -la /var/www/inventario/frontend/tailwind.config.js
+ls -la /var/www/inventario/frontend/postcss.config.js
+ls -la /var/www/inventario/frontend/craco.config.js
+```
+
+Si falta alguno, hay un problema con la extracción del código.
+
+## 4.5 Instalar Dependencias y Compilar Frontend
 
 ```bash
 cd /var/www/inventario/frontend
