@@ -225,54 +225,9 @@ ENABLE_HEALTH_CHECK=false
 
 Guardar: `Ctrl+X`, `Y`, `Enter`
 
-## 4.3 Reemplazar craco.config.js
+## 4.3 Verificar Archivos de Configuración
 
-⚠️ **IMPORTANTE**: El archivo `craco.config.js` que viene en el paquete NO funciona en producción.
-Debe reemplazarlo con esta versión simplificada:
-
-```bash
-cd /var/www/inventario/frontend
-
-# Eliminar el archivo existente
-rm -f craco.config.js
-
-# Crear el nuevo archivo
-cat > craco.config.js << 'EOF'
-// craco.config.js - Configuración para producción
-const path = require("path");
-
-module.exports = {
-  style: {
-    postcss: {
-      plugins: [
-        require('tailwindcss'),
-        require('autoprefixer'),
-      ],
-    },
-  },
-  webpack: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
-    configure: (webpackConfig) => {
-      webpackConfig.watchOptions = {
-        ...webpackConfig.watchOptions,
-        ignored: [
-          '**/node_modules/**',
-          '**/.git/**',
-          '**/build/**',
-        ],
-      };
-      return webpackConfig;
-    },
-  },
-};
-EOF
-```
-
-## 4.4 Verificar Archivos de Configuración
-
-Antes de continuar, verifique que existan estos archivos:
+Antes de continuar, verifique que existan estos 3 archivos CRÍTICOS:
 
 ```bash
 ls -la /var/www/inventario/frontend/tailwind.config.js
@@ -282,7 +237,14 @@ ls -la /var/www/inventario/frontend/craco.config.js
 
 Si falta alguno, hay un problema con la extracción del código.
 
-## 4.6 Instalar Dependencias y Compilar Frontend
+**Verificar contenido de craco.config.js:**
+```bash
+cat /var/www/inventario/frontend/craco.config.js
+```
+
+Debe contener `require('tailwindcss')` y `require('autoprefixer')`. Si no lo contiene, descargue de nuevo el paquete actualizado.
+
+## 4.4 Instalar Dependencias y Compilar Frontend
 
 ```bash
 cd /var/www/inventario/frontend
