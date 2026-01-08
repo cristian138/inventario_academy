@@ -282,7 +282,7 @@ ls -la /var/www/inventario/frontend/craco.config.js
 
 Si falta alguno, hay un problema con la extracción del código.
 
-## 4.5 Instalar Dependencias y Compilar Frontend
+## 4.6 Instalar Dependencias y Compilar Frontend
 
 ```bash
 cd /var/www/inventario/frontend
@@ -295,6 +295,39 @@ yarn build
 
 # Verificar que se creó la carpeta build
 ls -la build/
+```
+
+## 4.7 Verificar que los Estilos se Generaron Correctamente
+
+⚠️ **PASO CRÍTICO**: Debe verificar que Tailwind CSS procesó correctamente los estilos.
+
+```bash
+# Verificar el tamaño del archivo CSS
+ls -la /var/www/inventario/frontend/build/static/css/
+
+# El archivo main.*.css debe tener un tamaño de al menos 50KB
+# Si el archivo es menor a 10KB, los estilos NO se generaron correctamente
+```
+
+**Si el archivo CSS es muy pequeño (menos de 10KB):**
+
+1. Borre la carpeta build y node_modules:
+```bash
+cd /var/www/inventario/frontend
+rm -rf build node_modules
+```
+
+2. Verifique que `craco.config.js` tiene la configuración de Tailwind (paso 4.3)
+
+3. Vuelva a instalar y compilar:
+```bash
+yarn install
+yarn build
+```
+
+4. Verifique de nuevo el tamaño del CSS:
+```bash
+ls -la build/static/css/
 ```
 
 ═══════════════════════════════════════════════════════════════
