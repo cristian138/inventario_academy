@@ -104,11 +104,6 @@ const Login = () => {
               </button>
             </form>
 
-            <div className="mt-6 p-4 bg-slate-50 rounded-lg">
-              <p className="text-sm text-slate-600 mb-2">Credenciales de prueba:</p>
-              <p className="text-xs font-mono text-slate-700">Email: admin@academia.com</p>
-              <p className="text-xs font-mono text-slate-700">Password: admin123</p>
-            </div>
           </div>
         </div>
       </div>
