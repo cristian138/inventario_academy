@@ -199,6 +199,7 @@ class InstructorCreate(BaseModel):
     email: EmailStr
     phone: str
     specialization: str
+    password: Optional[str] = None  # Optional password for login access
 
 class InstructorUpdate(BaseModel):
     name: Optional[str] = None
@@ -206,6 +207,7 @@ class InstructorUpdate(BaseModel):
     phone: Optional[str] = None
     specialization: Optional[str] = None
     active: Optional[bool] = None
+    password: Optional[str] = None  # Optional password update
 
 class Instructor(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -215,6 +217,7 @@ class Instructor(BaseModel):
     phone: str
     specialization: str
     active: bool
+    has_login: bool = False  # Indicates if instructor can login
     created_at: str
 
 class SportCreate(BaseModel):
