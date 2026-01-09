@@ -61,12 +61,20 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        user_type: str = payload.get("type", "user")
         if email is None:
             raise HTTPException(status_code=401, detail="Invalid token")
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if user_type == "instructor":
+        instructor = await db.instructors.find_one({"email": email}, {"_id": 0})
+        if instructor is None:
+            raise HTTPException(status_code=401, detail="Instructor not found")
+        instructor["role"] = "instructor"
+        return instructor
     
     user = await db.users.find_one({"email": email}, {"_id": 0})
     if user is None:
