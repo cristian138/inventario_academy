@@ -265,6 +265,116 @@ class InventoryAPITester:
         success, logs, status = self.make_request('GET', 'audit')
         self.log_test("Get Audit Logs", success, f"Found {len(logs) if success else 0} audit entries")
 
+    def test_instructor_portal(self):
+        """Test instructor portal functionality"""
+        print("\n👨‍🏫 Testing Instructor Portal...")
+        
+        # Step 1: Create instructor with password
+        instructor_data = {
+            "name": "Test Instructor",
+            "email": "test.instructor@test.com",
+            "phone": "123456",
+            "specialization": "Testing",
+            "password": "test123"
+        }
+        
+        success, response, status = self.make_request('POST', 'instructors-management', instructor_data, 200)
+        if success:
+            instructor_id = response.get('id')
+            has_login = response.get('has_login', False)
+            self.log_test("Create Instructor with Password", has_login, f"Instructor created with login access: {instructor_id}")
+        else:
+            self.log_test("Create Instructor with Password", False, f"Status: {status}, Response: {response}")
+            return
+        
+        # Step 2: Test instructor login
+        instructor_token = None
+        success, login_response, status = self.make_request(
+            'POST',
+            'auth/login',
+            {"email": "test.instructor@test.com", "password": "test123"},
+            200
+        )
+        
+        if success and 'token' in login_response:
+            instructor_token = login_response['token']
+            user_role = login_response.get('user', {}).get('role', 'N/A')
+            self.log_test("Instructor Login", True, f"Login successful, role: {user_role}")
+        else:
+            self.log_test("Instructor Login", False, f"Status: {status}, Response: {login_response}")
+            return
+        
+        # Store original token and switch to instructor token
+        original_token = self.token
+        self.token = instructor_token
+        
+        # Step 3: Test instructor endpoints
+        # Test my-assignments endpoint
+        success, assignments, status = self.make_request('GET', 'instructor/my-assignments', expected_status=200)
+        self.log_test("Instructor My Assignments", success, f"Found {len(assignments) if success else 0} assignments")
+        
+        # Test my-history endpoint
+        success, history, status = self.make_request('GET', 'instructor/my-history', expected_status=200)
+        self.log_test("Instructor My History", success, f"Found {len(history) if success else 0} history records")
+        
+        # Test my-actas endpoint
+        success, actas, status = self.make_request('GET', 'instructor/my-actas', expected_status=200)
+        self.log_test("Instructor My Actas", success, f"Found {len(actas) if success else 0} actas")
+        
+        # Step 4: Create an assignment for the instructor to test confirm-reception
+        # Switch back to admin token to create assignment
+        self.token = original_token
+        
+        # Get available goods for assignment
+        success, goods, status = self.make_request('GET', 'goods')
+        if success and goods:
+            available_goods = [g for g in goods if g.get('available_quantity', 0) > 0]
+            if available_goods:
+                good = available_goods[0]
+                
+                # Create assignment for the test instructor
+                assignment_data = {
+                    "instructor_name": "Test Instructor",
+                    "discipline": "Testing",
+                    "details": [
+                        {
+                            "good_id": good['id'],
+                            "quantity_assigned": min(1, good['available_quantity'])
+                        }
+                    ],
+                    "notes": "Test assignment for instructor portal testing"
+                }
+                
+                success, assignment_response, status = self.make_request('POST', 'assignments', assignment_data, 200)
+                if success:
+                    assignment_id = assignment_response.get('assignment_id')
+                    self.log_test("Create Assignment for Instructor", True, f"Assignment created: {assignment_id}")
+                    
+                    # Switch back to instructor token to test confirm-reception
+                    self.token = instructor_token
+                    
+                    # Test confirm-reception endpoint
+                    success, confirm_response, status = self.make_request(
+                        'POST', 
+                        f'instructor/confirm-reception/{assignment_id}',
+                        expected_status=200
+                    )
+                    self.log_test("Instructor Confirm Reception", success, f"Reception confirmed for assignment: {assignment_id}")
+                    
+                else:
+                    self.log_test("Create Assignment for Instructor", False, f"Status: {status}, Response: {assignment_response}")
+            else:
+                self.log_test("Create Assignment for Instructor", False, "No goods with available quantity")
+        else:
+            self.log_test("Create Assignment for Instructor", False, "Could not retrieve goods")
+        
+        # Restore original admin token
+        self.token = original_token
+        
+        # Step 5: Test access control - admin trying to access instructor endpoints should fail
+        success, response, status = self.make_request('GET', 'instructor/my-assignments', expected_status=403)
+        self.log_test("Admin Access Control", status == 403, f"Admin correctly denied access to instructor endpoints (Status: {status})")
+
     def test_error_handling(self):
         """Test error handling and edge cases"""
         print("\n⚠️ Testing Error Handling...")
