@@ -286,6 +286,16 @@ const Instructors = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
+                    {instructor.has_login ? (
+                      <Badge className="bg-blue-100 text-blue-700">
+                        <Key className="w-3 h-3 mr-1" />
+                        Habilitado
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-slate-400">Sin acceso</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => handleEdit(instructor)}
