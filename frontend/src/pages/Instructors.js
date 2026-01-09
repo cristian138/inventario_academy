@@ -194,6 +194,24 @@ const Instructors = () => {
                   data-testid="instructor-specialization-input"
                 />
               </div>
+              <div className="border-t pt-4 mt-4">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  Contraseña de Acceso
+                  <span className="text-xs text-slate-500 font-normal">(opcional)</span>
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder={editingInstructor ? "Dejar vacío para mantener la actual" : "Crear contraseña para acceso al portal"}
+                  data-testid="instructor-password-input"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Si asigna una contraseña, el instructor podrá iniciar sesión para ver sus bienes asignados.
+                </p>
+              </div>
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
