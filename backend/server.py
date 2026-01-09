@@ -1066,6 +1066,138 @@ async def get_reports(
     
     return []
 
+# ============================================
+# INSTRUCTOR PORTAL ENDPOINTS
+# ============================================
+
+@api_router.get("/instructor/my-assignments")
+async def get_instructor_assignments(current_user: dict = Depends(get_current_user)):
+    """Get current assignments for the logged-in instructor"""
+    if current_user.get("role") != "instructor":
+        raise HTTPException(status_code=403, detail="Solo instructores pueden acceder a este recurso")
+    
+    instructor_name = current_user["name"]
+    
+    # Get active assignments for this instructor
+    assignments = await db.assignments.find(
+        {"instructor_name": instructor_name, "status": {"$in": ["Pendiente", "Entregado"]}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Enrich with assignment details and good info
+    for assignment in assignments:
+        details = await db.assignment_details.find(
+            {"assignment_id": assignment["id"]},
+            {"_id": 0}
+        ).to_list(100)
+        
+        for detail in details:
+            good = await db.goods.find_one({"id": detail["good_id"]}, {"_id": 0})
+            if good:
+                detail["good_name"] = good["name"]
+                detail["good_description"] = good.get("description", "")
+                category = await db.categories.find_one({"id": good["category_id"]}, {"_id": 0})
+                detail["category_name"] = category["name"] if category else "N/A"
+        
+        assignment["details"] = details
+    
+    return assignments
+
+@api_router.get("/instructor/my-history")
+async def get_instructor_history(current_user: dict = Depends(get_current_user)):
+    """Get assignment history for the logged-in instructor"""
+    if current_user.get("role") != "instructor":
+        raise HTTPException(status_code=403, detail="Solo instructores pueden acceder a este recurso")
+    
+    instructor_name = current_user["name"]
+    
+    # Get all assignments (including returned) for this instructor
+    assignments = await db.assignments.find(
+        {"instructor_name": instructor_name},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    # Enrich with assignment details
+    for assignment in assignments:
+        details = await db.assignment_details.find(
+            {"assignment_id": assignment["id"]},
+            {"_id": 0}
+        ).to_list(100)
+        
+        for detail in details:
+            good = await db.goods.find_one({"id": detail["good_id"]}, {"_id": 0})
+            if good:
+                detail["good_name"] = good["name"]
+        
+        assignment["details"] = details
+    
+    return assignments
+
+@api_router.get("/instructor/my-actas")
+async def get_instructor_actas(current_user: dict = Depends(get_current_user)):
+    """Get actas for the logged-in instructor"""
+    if current_user.get("role") != "instructor":
+        raise HTTPException(status_code=403, detail="Solo instructores pueden acceder a este recurso")
+    
+    instructor_name = current_user["name"]
+    
+    # Get assignments for this instructor
+    assignments = await db.assignments.find(
+        {"instructor_name": instructor_name},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    assignment_ids = [a["id"] for a in assignments]
+    
+    # Get actas related to these assignments
+    actas = await db.actas.find(
+        {"assignment_id": {"$in": assignment_ids}},
+        {"_id": 0}
+    ).sort("generated_at", -1).to_list(1000)
+    
+    return actas
+
+@api_router.post("/instructor/confirm-reception/{assignment_id}")
+async def confirm_reception(request: Request, assignment_id: str, current_user: dict = Depends(get_current_user)):
+    """Instructor confirms reception of assigned goods"""
+    if current_user.get("role") != "instructor":
+        raise HTTPException(status_code=403, detail="Solo instructores pueden acceder a este recurso")
+    
+    instructor_name = current_user["name"]
+    
+    # Find the assignment
+    assignment = await db.assignments.find_one(
+        {"id": assignment_id, "instructor_name": instructor_name},
+        {"_id": 0}
+    )
+    
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Asignación no encontrada")
+    
+    if assignment["status"] != "Pendiente":
+        raise HTTPException(status_code=400, detail="Esta asignación ya fue confirmada o devuelta")
+    
+    # Update assignment status to "Entregado" and add confirmation timestamp
+    await db.assignments.update_one(
+        {"id": assignment_id},
+        {"$set": {
+            "status": "Entregado",
+            "confirmed_at": datetime.now(timezone.utc).isoformat(),
+            "confirmed_by": instructor_name
+        }}
+    )
+    
+    client_ip = request.client.host if request.client else "unknown"
+    await create_audit_log(
+        current_user["email"], 
+        "CONFIRM_RECEPTION", 
+        "assignments", 
+        client_ip, 
+        f"Instructor confirmed reception of assignment: {assignment_id}"
+    )
+    
+    return {"message": "Recepción confirmada exitosamente"}
+
 # Include the router
 app.include_router(api_router)
 
