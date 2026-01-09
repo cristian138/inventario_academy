@@ -469,6 +469,11 @@ async def get_instructors_management(current_user: dict = Depends(get_current_us
 
 @api_router.post("/instructors-management", response_model=Instructor)
 async def create_instructor(request: Request, instructor_data: InstructorCreate, current_user: dict = Depends(get_current_user)):
+    # Check if email already exists
+    existing = await db.instructors.find_one({"email": instructor_data.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="El email ya está registrado")
+    
     instructor = {
         "id": str(uuid.uuid4()),
         "name": instructor_data.name,
@@ -476,8 +481,14 @@ async def create_instructor(request: Request, instructor_data: InstructorCreate,
         "phone": instructor_data.phone,
         "specialization": instructor_data.specialization,
         "active": True,
+        "has_login": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
+    
+    # If password is provided, enable login
+    if instructor_data.password:
+        instructor["password_hash"] = get_password_hash(instructor_data.password)
+        instructor["has_login"] = True
     
     await db.instructors.insert_one(instructor)
     
