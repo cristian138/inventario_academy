@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../utils/api';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Search, UserCheck, UserX } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, UserCheck, UserX, Key } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import {
@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
+import { Badge } from '../components/ui/badge';
 
 const Instructors = () => {
   const [instructors, setInstructors] = useState([]);
@@ -24,6 +25,7 @@ const Instructors = () => {
     email: '',
     phone: '',
     specialization: '',
+    password: '',
   });
 
   useEffect(() => {
