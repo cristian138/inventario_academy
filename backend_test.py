@@ -415,6 +415,7 @@ class InventoryAPITester:
         self.test_dashboard_stats()
         self.test_reports()
         self.test_audit_logs()
+        self.test_instructor_portal()  # New instructor portal tests
         self.test_error_handling()
         
         # Print summary
