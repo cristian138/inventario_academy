@@ -70,6 +70,7 @@ const Instructors = () => {
       email: instructor.email,
       phone: instructor.phone,
       specialization: instructor.specialization,
+      password: '', // Don't show existing password
     });
     setIsDialogOpen(true);
   };
