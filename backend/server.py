@@ -503,7 +503,12 @@ async def update_instructor(request: Request, instructor_id: str, instructor_dat
     if not instructor:
         raise HTTPException(status_code=404, detail="Instructor no encontrado")
     
-    update_data = {k: v for k, v in instructor_data.model_dump(exclude_unset=True).items() if v is not None}
+    update_data = {k: v for k, v in instructor_data.model_dump(exclude_unset=True).items() if v is not None and k != "password"}
+    
+    # Handle password update separately
+    if instructor_data.password:
+        update_data["password_hash"] = get_password_hash(instructor_data.password)
+        update_data["has_login"] = True
     
     if update_data:
         await db.instructors.update_one({"id": instructor_id}, {"$set": update_data})
