@@ -56,13 +56,22 @@ export const api = {
 
   // Actas
   getActas: () => axios.get(`${API}/actas`, { headers: getAuthHeader() }),
-  downloadActa: (id) => `${API}/actas/${id}/download`,
+  downloadActa: (id) => axios.get(`${API}/actas/${id}/download`, { 
+    headers: getAuthHeader(),
+    responseType: 'blob'
+  }),
 
   // Reports
   getReports: (params) => axios.get(`${API}/reports`, { params, headers: getAuthHeader() }),
 
   // Audit
   getAuditLogs: () => axios.get(`${API}/audit`, { headers: getAuthHeader() }),
+
+  // Instructor Portal
+  getInstructorAssignments: () => axios.get(`${API}/instructor/my-assignments`, { headers: getAuthHeader() }),
+  getInstructorHistory: () => axios.get(`${API}/instructor/my-history`, { headers: getAuthHeader() }),
+  getInstructorActas: () => axios.get(`${API}/instructor/my-actas`, { headers: getAuthHeader() }),
+  confirmReception: (assignmentId) => axios.post(`${API}/instructor/confirm-reception/${assignmentId}`, {}, { headers: getAuthHeader() }),
 };
 
 export default api;
