@@ -105,6 +105,7 @@ const Instructors = () => {
       email: '',
       phone: '',
       specialization: '',
+      password: '',
     });
   };
 
