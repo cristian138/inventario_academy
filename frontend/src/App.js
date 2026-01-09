@@ -14,6 +14,7 @@ import Assignments from './pages/Assignments';
 import Actas from './pages/Actas';
 import Reports from './pages/Reports';
 import Audit from './pages/Audit';
+import InstructorPortal from './pages/InstructorPortal';
 import Layout from './components/Layout';
 import './App.css';
 
@@ -57,12 +58,42 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+const InstructorRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== 'instructor') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+};
+
 function AppRoutes() {
   const { user } = useAuth();
 
+  // Redirect instructor to their portal
+  const getDefaultRoute = () => {
+    if (user?.role === 'instructor') {
+      return '/instructor-portal';
+    }
+    return '/dashboard';
+  };
+
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/login" element={user ? <Navigate to={getDefaultRoute()} replace /> : <Login />} />
       <Route
         path="/"
         element={
@@ -71,7 +102,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route index element={<Navigate to={getDefaultRoute()} replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="users" element={<AdminRoute><Users /></AdminRoute>} />
         <Route path="instructors" element={<Instructors />} />
@@ -83,6 +114,7 @@ function AppRoutes() {
         <Route path="actas" element={<Actas />} />
         <Route path="reports" element={<Reports />} />
         <Route path="audit" element={<AdminRoute><Audit /></AdminRoute>} />
+        <Route path="instructor-portal" element={<InstructorRoute><InstructorPortal /></InstructorRoute>} />
       </Route>
     </Routes>
   );
