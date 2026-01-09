@@ -12,7 +12,8 @@ import {
   LogOut,
   Menu,
   X,
-  FolderOpen
+  FolderOpen,
+  UserCircle
 } from 'lucide-react';
 
 const Layout = () => {
@@ -26,7 +27,8 @@ const Layout = () => {
     navigate('/login');
   };
 
-  const menuItems = [
+  // Menu items for admin/control users
+  const adminMenuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'control'] },
     { path: '/users', icon: Users, label: 'Usuarios', roles: ['admin'] },
     { path: '/instructors', icon: Users, label: 'Instructores', roles: ['admin', 'control'] },
@@ -40,6 +42,12 @@ const Layout = () => {
     { path: '/audit', icon: Shield, label: 'Auditoría', roles: ['admin'] },
   ];
 
+  // Menu items for instructors
+  const instructorMenuItems = [
+    { path: '/instructor-portal', icon: UserCircle, label: 'Mi Portal', roles: ['instructor'] },
+  ];
+
+  const menuItems = user?.role === 'instructor' ? instructorMenuItems : adminMenuItems;
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(user?.role));
 
   return (
