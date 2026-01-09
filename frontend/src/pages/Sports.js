@@ -215,7 +215,7 @@ const Sports = () => {
                 Editar
               </Button>
               <Button
-                onClick={() => handleDelete(sport)}
+                onClick={() => handleDelete(sport.id)}
                 size="sm"
                 variant="outline"
                 className="text-red-600 hover:bg-red-50"
