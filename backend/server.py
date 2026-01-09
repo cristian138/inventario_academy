@@ -751,7 +751,7 @@ async def create_assignment(request: Request, assignment_data: AssignmentCreate,
         "discipline": assignment_data.discipline,
         "created_by": current_user["email"],
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "status": "activa",
+        "status": "Pendiente",
         "notes": assignment_data.notes,
         "signed_acta_uploaded": False
     }
