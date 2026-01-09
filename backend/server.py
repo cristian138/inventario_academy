@@ -298,21 +298,44 @@ async def get_disciplines(current_user: dict = Depends(get_current_user)):
 # Auth endpoints
 @api_router.post("/auth/login", response_model=LoginResponse)
 async def login(request: Request, login_data: LoginRequest):
+    # First try to find in users collection
     user = await db.users.find_one({"email": login_data.email}, {"_id": 0})
-    if not user or not verify_password(login_data.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
     
-    if not user.get("active", True):
-        raise HTTPException(status_code=403, detail="Usuario desactivado")
+    if user:
+        if not verify_password(login_data.password, user["password_hash"]):
+            raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
+        
+        if not user.get("active", True):
+            raise HTTPException(status_code=403, detail="Usuario desactivado")
+        
+        token = create_access_token({"sub": user["email"], "type": "user"})
+        
+        client_ip = request.client.host if request.client else "unknown"
+        await create_audit_log(user["email"], "LOGIN", "auth", client_ip)
+        
+        user_data = {k: v for k, v in user.items() if k != "password_hash"}
+        return {"token": token, "user": user_data}
     
-    token = create_access_token({"sub": user["email"]})
+    # Try to find in instructors collection
+    instructor = await db.instructors.find_one({"email": login_data.email, "has_login": True}, {"_id": 0})
     
-    # Create audit log
-    client_ip = request.client.host if request.client else "unknown"
-    await create_audit_log(user["email"], "LOGIN", "auth", client_ip)
+    if instructor:
+        if not instructor.get("password_hash") or not verify_password(login_data.password, instructor["password_hash"]):
+            raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
+        
+        if not instructor.get("active", True):
+            raise HTTPException(status_code=403, detail="Instructor desactivado")
+        
+        token = create_access_token({"sub": instructor["email"], "type": "instructor"})
+        
+        client_ip = request.client.host if request.client else "unknown"
+        await create_audit_log(instructor["email"], "LOGIN_INSTRUCTOR", "auth", client_ip)
+        
+        instructor_data = {k: v for k, v in instructor.items() if k != "password_hash"}
+        instructor_data["role"] = "instructor"
+        return {"token": token, "user": instructor_data}
     
-    user_data = {k: v for k, v in user.items() if k != "password_hash"}
-    return {"token": token, "user": user_data}
+    raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
 
 @api_router.get("/auth/me", response_model=User)
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
